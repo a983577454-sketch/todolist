@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        font-family: Arial, "Microsoft JhengHei", sans-serif;
+        background-color: #f9f9f9;
+        margin: 0;
+        padding: 0;
+      }
+
+      .control-panel {
+        width: 304px;
+        margin: 60px auto 0 auto;
+        display: flex;
+        gap: 6px;
+      }
+
+      .control-panel input {
+        flex: 1;
+        height: 40px;
+        padding: 0 12px;
+        font-size: 16px;
+        border: 2px solid rgb(175, 103, 247);
+        border-radius: 8px;
+        outline: none;
+        box-sizing: border-box;
+      }
+
+      .control-panel button {
+        height: 40px;
+        padding: 0 16px;
+        font-size: 16px;
+        font-weight: bold;
+        background-color: rgb(175, 103, 247);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .control-panel button:hover {
+        background-color: rgb(150, 80, 220);
+      }
+
+      .answer {
+        width: 304px;
+        margin: 15px auto;
+        text-align: center;
+        font-size: 18px;
+        font-weight: bold;
+        color: #555;
+        padding: 10px 0;
+        background-color: #eee;
+        border-radius: 8px;
+        box-sizing: border-box;
+      }
+
+      .container {
+        width: 304px; 
+        margin: 0 auto 60px auto;
+        display: grid;
+        grid-template-columns: repeat(3, 100px); 
+        gap: 2px; 
+      }
+
+      .tile {
+        height: 100px;
+        background-color: white;
+        border: 2px solid rgb(175, 103, 247); 
+        box-sizing: border-box; 
+        border-radius: 10px; 
+        display: flex;
+        justify-content: center; 
+        align-items: center;
+        font-size: 48px;       
+        cursor: pointer;
+        user-select: none;
+        transition: transform 0.1s, background-color 0.1s; /* 優化：加入點擊動態效果 */
+      }
+      /* 優化：按鍵按下去的 Q 彈視覺反饋 */
+      .tile:active {
+        transform: scale(0.95);
+        background-color: #f0e5ff;
+      }
+
+      .tile:last-child {
+        grid-column: span 3; 
+      }
+    </style>
+  </head>
+  <body>
+
+    <div class="control-panel">
+      <input type="text" class="guess-input" placeholder="輸入1~100的數字">
+      <button class="guess-btn">拆!</button>
+    </div>
+
+    <div class="answer">輸入數字</div>
+
+    <div class="container">
+      <div class="tile">壹</div>
+      <div class="tile">貳</div>
+      <div class="tile">叁</div>
+      <div class="tile">肆</div>
+      <div class="tile">伍</div>
+      <div class="tile">坴</div>
+      <div class="tile">柒</div>
+      <div class="tile">捌</div>
+      <div class="tile">玖</div>
+      <div class="tile">零</div>
+    </div>
+
+    <script>
+      // 優化 1：利用字串索引（對應 0~9 的位置），直接把查表邏輯縮成一行
+      const chars = "零壹貳叁肆伍坴柒捌玖";
+      let min = 1, max = 100, ans = Math.floor(Math.random() * 100) + 1;
+
+      const input = document.querySelector('.guess-input');
+      const btn = document.querySelector('.guess-btn');
+      const ansDiv = document.querySelector('.answer');
+
+      const updateUI = (msg) => ansDiv.textContent = msg;
+      updateUI(`開始！範圍：${min} ~ ${max}`);
+
+      // 優化 2：利用事件代理（Event Delegation），將監聽器綁在父外框即可，不用跑 10 次迴圈
+      document.querySelector('.container').addEventListener('click', (e) => {
+        if (e.target.classList.contains('tile')) {
+          const num = chars.indexOf(e.target.textContent.trim());
+          if (num !== -1) input.value += num;
+        }
+      });
+
+      // 優化 3：合併按鈕點擊與 Enter 鍵邏輯
+      const handleGuess = () => {
+        const guess = parseInt(input.value, 10);
+        input.value = ''; // 立即清空輸入框
+        input.focus();
+
+        if (isNaN(guess) || guess < min || guess > max) {
+          alert(`輸入範圍內的數字！ (${min} ~ ${max})`);
+          return;
+        }
+
+        if (guess === ans) {
+          alert(`答對了！答案是 ${ans}。`);
+          min = 1; max = 100; ans = Math.floor(Math.random() * 100) + 1; // 直接重置
+          updateUI(`開始！範圍：${min} ~ ${max}`);
+        } else {
+          if (guess < ans) min = guess + 1;
+          else max = guess - 1;
+          updateUI(`提示：${min} ~ ${max}`);
+        }
+      };
+
+      btn.addEventListener('click', handleGuess);
+      input.addEventListener('keydown', (e) => e.key === 'Enter' && handleGuess());
+    </script>
+  </body>
+</html>
